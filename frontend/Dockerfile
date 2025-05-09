@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm install
 
 # Set API URL for frontend
-ENV VITE_API_URL=http://localhost:5000
+ENV VITE_API_URL=http://backend-service:5000
 
 # Copy app source
 COPY . .
