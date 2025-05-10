@@ -43,6 +43,7 @@ jobs:
       - name: Deploy to Minikube
         shell: cmd
         run: |
+          minikube start 
           kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f kubernetes/
           # Wait for rollout to complete
