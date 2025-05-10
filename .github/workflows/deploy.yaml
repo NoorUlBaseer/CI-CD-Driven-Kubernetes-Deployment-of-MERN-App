@@ -38,7 +38,7 @@ jobs:
           tags: sodapopin/scd-project-frontend:latest
 
       - name: Deploy to Minikube
-        shell: bash
+        shell: cmd
         run: |
           kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f kubernetes/
