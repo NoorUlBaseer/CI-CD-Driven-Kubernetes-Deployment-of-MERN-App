@@ -37,15 +37,10 @@ jobs:
           push: true
           tags: sodapopin/scd-project-frontend:latest
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-
       - name: Deploy to Minikube
-        shell: cmd
+        shell: bash
         run: |
-          minikube start 
           kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f kubernetes/
-          # Wait for rollout to complete
           kubectl rollout status deployment/backend -n scd-project
           kubectl rollout status deployment/frontend -n scd-project
