@@ -1,4 +1,4 @@
-name: Build and Deploy to Minikube
+name: Deploy to Minikube
 
 on:
   push:
@@ -7,17 +7,17 @@ on:
     branches: [main]
 
 jobs:
-  build-and-deploy:
+  deploy-to-minikube: # Changed job name for clarity
     runs-on: self-hosted # IMPORTANT: Assumes Minikube is running and accessible on this runner
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # This step is kept to access the Kubernetes manifest files (e.g., in the 'kubernetes/' directory)
 
       # Step to verify Minikube is running and its context is set.
-      # This is crucial for self-hosted runners.
       - name: Verify Minikube status and set context
-        shell: cmd # Assuming a Windows runner based on 'connectex' error and original 'shell: cmd'
+        shell: cmd # Assuming a Windows runner
         run: |
           echo "Checking Minikube status..."
           minikube status
@@ -25,48 +25,24 @@ jobs:
           minikube update-context
           echo "Minikube context should now be set for kubectl."
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
-      - name: Build and push backend image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend # Path to your backend Dockerfile directory
-          push: true
-          tags: sodapopin/scd-project-backend:latest # Replace with your Docker Hub username and image name
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend # Path to your frontend Dockerfile directory
-          push: true
-          tags: sodapopin/scd-project-frontend:latest # Replace with your Docker Hub username and image name
-
       - name: Deploy to Minikube
         shell: cmd # Using cmd shell as in the original file
         run: |
           REM Use 'minikube kubectl --' to ensure commands are correctly routed to the Minikube cluster.
-          REM This is generally more reliable on self-hosted runners.
+          REM Add '--insecure-skip-tls-verify=true' to bypass TLS certificate verification for Minikube.
 
           REM Create namespace if it doesn't exist. Ignore error if it already exists.
-          minikube kubectl -- create namespace scd-project || echo "Namespace scd-project may already exist or an error occurred. Continuing..."
+          minikube kubectl -- --insecure-skip-tls-verify=true create namespace scd-project || echo "Namespace scd-project may already exist or an error occurred. Continuing..."
 
           REM Apply all Kubernetes manifest files from the 'kubernetes' directory to the specified namespace.
-          REM Ensure your YAML files in 'kubernetes/' are correctly defining deployments, services, etc.
-          REM If your YAMLs already specify a namespace, ensure it's 'scd-project'.
-          minikube kubectl -- apply -f kubernetes/ -n scd-project
+          REM Ensure your Kubernetes manifests are configured to pull the correct image tags 
+          REM (e.g., sodapopin/scd-project-backend:latest, sodapopin/scd-project-frontend:latest)
+          minikube kubectl -- --insecure-skip-tls-verify=true apply -f kubernetes/ -n scd-project
 
           REM Wait for the backend deployment to complete its rollout.
-          REM Adjust timeout as necessary (e.g., 5m for 5 minutes).
-          minikube kubectl -- rollout status deployment/backend -n scd-project --timeout=5m
+          minikube kubectl -- --insecure-skip-tls-verify=true rollout status deployment/backend -n scd-project --timeout=5m
 
           REM Wait for the frontend deployment to complete its rollout.
-          minikube kubectl -- rollout status deployment/frontend -n scd-project --timeout=5m
+          minikube kubectl -- --insecure-skip-tls-verify=true rollout status deployment/frontend -n scd-project --timeout=5m
           
           echo "Deployments rollout status checked."
