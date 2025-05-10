@@ -41,10 +41,8 @@ jobs:
         uses: azure/setup-kubectl@v3
 
       - name: Deploy to Minikube
-        shell: powershell
+        shell: cmd
         run: |
-          # Temporarily set execution policy
-          Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
           kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f kubernetes/
           # Wait for rollout to complete
