@@ -11,29 +11,57 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # ...existing code for checkout and docker setup...
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup Minikube Certificate
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: sodapopin/scd-project-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: sodapopin/scd-project-frontend:latest
+
+      - name: Set up Docker to use Minikube's environment
+        run: minikube docker-env | Invoke-Expression
+        shell: powershell
+
+      - name: Get Minikube IP
+        id: minikube_ip
         run: |
-          $certPath = "$env:USERPROFILE\.minikube\ca.crt"
-          kubectl config set-cluster minikube --embed-certs --certificate-authority=$certPath
-          kubectl config use-context minikube
+          $ip = minikube ip
+          echo "MINIKUBE_IP=$ip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: powershell
+
+      - name: Create namespace
+        run: |
+          kubectl create namespace scd-project --dry-run=client -o yaml --validate=false | kubectl apply -f - --validate=false
         shell: powershell
 
       - name: Deploy to Minikube
         run: |
-          # Generate fresh kubeconfig
-             minikube kubectl -- config view --flatten > $env:RUNNER_TEMP/kubeconfig.yaml
-           $env:KUBECONFIG="$env:RUNNER_TEMP/kubeconfig.yaml"
-
-           # Apply configurations
           kubectl apply -f kubernetes/deployment.yaml --validate=false
           kubectl apply -f kubernetes/service.yaml --validate=false
         shell: powershell
         
       - name: Wait for deployments
         run: |
-          kubectl wait --for=condition=available deployment/backend -n scd-project --timeout=300s
-          kubectl wait --for=condition=available deployment/frontend -n scd-project --timeout=300s
+          kubectl rollout status deployment/backend -n scd-project
+          kubectl rollout status deployment/frontend -n scd-project
           kubectl get all -n scd-project
         shell: powershell
