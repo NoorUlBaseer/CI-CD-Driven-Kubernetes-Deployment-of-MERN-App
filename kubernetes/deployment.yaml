@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mongodb
+  namespace: scd-project
 spec:
   selector:
     matchLabels:
@@ -30,6 +31,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
+  namespace: scd-project
 spec:
   selector:
     matchLabels:
@@ -58,6 +60,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+  namespace: scd-project
 spec:
   selector:
     matchLabels:
@@ -80,6 +83,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mongodb-pvc
+  namespace: scd-project
 spec:
   accessModes:
     - ReadWriteOnce
