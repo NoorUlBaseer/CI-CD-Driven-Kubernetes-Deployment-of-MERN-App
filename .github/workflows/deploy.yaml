@@ -15,28 +15,9 @@ jobs:
 
       - name: Setup Minikube Certificate
         run: |
-          # Wait for Minikube to be ready
-          $retryCount = 0
-          do {
-            $status = minikube status --format '{{.Host}}' 2>&1
-            if ($status -eq 'Running') { break }
-            Start-Sleep -Seconds 5
-            $retryCount++
-          } while ($retryCount -lt 12)  # 1 minute timeout
-
-          # Setup certificates
           $certPath = "$env:USERPROFILE\.minikube\ca.crt"
           kubectl config set-cluster minikube --embed-certs --certificate-authority=$certPath
           kubectl config use-context minikube
-
-          # Verify connection
-          kubectl cluster-info
-          if (-not $?) { throw "Failed to connect to cluster" }
-        shell: powershell
-
-      - name: Create namespace
-        run: |
-          kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
         shell: powershell
 
       - name: Deploy to Minikube
