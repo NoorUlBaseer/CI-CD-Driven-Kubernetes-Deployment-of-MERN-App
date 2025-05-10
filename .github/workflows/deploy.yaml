@@ -50,15 +50,18 @@ jobs:
 
       - name: Create namespace
         run: |
-          kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace scd-project --dry-run=client -o yaml --validate=false | kubectl apply -f - --validate=false
+        shell: powershell
 
       - name: Deploy to Minikube
         run: |
-          kubectl apply -f kubernetes/deployment.yaml
-          kubectl apply -f kubernetes/service.yaml
+          kubectl apply -f kubernetes/deployment.yaml --validate=false
+          kubectl apply -f kubernetes/service.yaml --validate=false
+        shell: powershell
         
       - name: Wait for deployments
         run: |
           kubectl rollout status deployment/backend -n scd-project
           kubectl rollout status deployment/frontend -n scd-project
           kubectl get all -n scd-project
+        shell: powershell
