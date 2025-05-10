@@ -22,8 +22,8 @@ jobs:
 
       - name: Deploy to Minikube
         run: |
-          minikube kubectl apply -f kubernetes/deployment.yaml --validate=false
-          minikube kubectl apply -f kubernetes/service.yaml --validate=false
+          minikube kubectl -- apply -f kubernetes/deployment.yaml --validate=false
+          minikube kubectl -- apply -f kubernetes/service.yaml --validate=false
         shell: powershell
         
       - name: Wait for deployments
