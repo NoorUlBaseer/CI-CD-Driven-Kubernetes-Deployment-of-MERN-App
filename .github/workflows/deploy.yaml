@@ -28,21 +28,16 @@ jobs:
       - name: Deploy to Minikube
         shell: cmd # Using cmd shell as in the original file
         run: |
-          REM Use 'minikube kubectl --' to ensure commands are correctly routed to the Minikube cluster.
-          REM Add '--insecure-skip-tls-verify=true' to bypass TLS certificate verification for Minikube.
-
-          REM Create namespace if it doesn't exist. Ignore error if it already exists.
-          minikube kubectl -- --insecure-skip-tls-verify=true create namespace scd-project || echo "Namespace scd-project may already exist or an error occurred. Continuing..."
-
-          REM Apply all Kubernetes manifest files from the 'kubernetes' directory to the specified namespace.
-          REM Ensure your Kubernetes manifests are configured to pull the correct image tags 
-          REM (e.g., sodapopin/scd-project-backend:latest, sodapopin/scd-project-frontend:latest)
-          minikube kubectl -- --insecure-skip-tls-verify=true apply -f kubernetes/ -n scd-project
-
-          REM Wait for the backend deployment to complete its rollout.
-          minikube kubectl -- --insecure-skip-tls-verify=true rollout status deployment/backend -n scd-project --timeout=5m
-
-          REM Wait for the frontend deployment to complete its rollout.
-          minikube kubectl -- --insecure-skip-tls-verify=true rollout status deployment/frontend -n scd-project --timeout=5m
-          
-          echo "Deployments rollout status checked."
+          # Get and use Minikube's kubeconfig
+          $env:KUBECONFIG="$env:USERPROFILE\.kube\config"
+          minikube kubectl -- config view --flatten > $env:KUBECONFIG
+    
+          # Create namespace (skip if exists)
+          minikube kubectl -- create namespace scd-project --dry-run=client -o yaml | minikube kubectl -- apply -f -
+    
+          # Apply manifests with validation disabled
+          minikube kubectl -- apply -f kubernetes/ -n scd-project --validate=false
+    
+          # Check deployments
+          minikube kubectl -- rollout status deployment/backend -n scd-project --timeout=5m
+          minikube kubectl -- rollout status deployment/frontend -n scdn-project --timeout=5m
