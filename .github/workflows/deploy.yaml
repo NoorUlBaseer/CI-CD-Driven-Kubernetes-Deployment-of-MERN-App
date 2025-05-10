@@ -1,43 +1,60 @@
-name: Deploy to Minikube
+name: Build and Deploy to Minikube
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  deploy-to-minikube: # Changed job name for clarity
-    runs-on: self-hosted # IMPORTANT: Assumes Minikube is running and accessible on this runner
+  build-and-deploy:
+    runs-on: self-hosted
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        # This step is kept to access the Kubernetes manifest files (e.g., in the 'kubernetes/' directory)
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      # Step to verify Minikube is running and its context is set.
-      - name: Verify Minikube status and set context
-        shell: cmd # Assuming a Windows runner
-        run: |
-          echo "Checking Minikube status..."
-          minikube status
-          echo "Updating kubeconfig context for Minikube..."
-          minikube update-context
-          echo "Minikube context should now be set for kubectl."
+    - name: Set up Docker to use Minikube's environment
+      run: minikube docker-env | Invoke-Expression
+      shell: powershell
 
-      - name: Deploy to Minikube
-        shell: cmd # Using cmd shell as in the original file
-        run: |
-          # Get and use Minikube's kubeconfig
-          $env:KUBECONFIG="$env:USERPROFILE\.kube\config"
-          minikube kubectl -- config view --flatten > $env:KUBECONFIG
-    
-          # Create namespace (skip if exists)
-          minikube kubectl -- create namespace scd-project --dry-run=client -o yaml | minikube kubectl -- apply -f -
-    
-          # Apply manifests with validation disabled
-          minikube kubectl -- apply -f kubernetes/ -n scd-project --validate=false
-    
-          # Check deployments
-          minikube kubectl -- rollout status deployment/backend -n scd-project --timeout=5m
-          minikube kubectl -- rollout status deployment/frontend -n scdn-project --timeout=5m
+    - name: Get Minikube IP
+      id: minikube_ip
+      run: |
+        $ip = minikube ip
+        echo "MINIKUBE_IP=$ip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      shell: powershell
+
+    - name: Build Backend Docker image
+      run: |
+        cd backend
+        docker build -t sodapopin/scd-project-backend:latest .
+
+    - name: Build Frontend Docker image
+      run: |
+        cd frontend
+        echo "VITE_API_URL=http://${{ env.MINIKUBE_IP }}:5000" > .env
+        docker build -t sodapopin/scd-project-frontend:latest .
+
+    - name: Login to Docker Hub
+      run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+    - name: Push Backend Docker image
+      run: docker push sodapopin/scd-project-backend:latest
+
+    - name: Push Frontend Docker image
+      run: docker push sodapopin/scd-project-frontend:latest
+
+    - name: Create namespace
+      run: |
+        kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Deploy to Minikube
+      run: |
+        kubectl apply -f kubernetes/deployment.yaml
+        kubectl apply -f kubernetes/service.yaml
+        
+    - name: Wait for deployments
+      run: |
+        kubectl rollout status deployment/backend -n scd-project
+        kubectl rollout status deployment/frontend -n scd-project
+        kubectl get all -n scd-project
