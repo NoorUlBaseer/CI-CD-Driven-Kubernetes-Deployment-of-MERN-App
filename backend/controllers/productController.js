@@ -45,11 +45,10 @@ export const createProduct = async (req, res) => {
       countInStock 
     } = req.body;
     
-    const product = new Product({
-      name,
+    const product = new Product({      name,
       price,
       user: req.user._id,
-      image: image || 'https://via.placeholder.com/600x600?text=Product+Image',
+      image: image || '',
       brand,
       category: category || 'Sample Category',
       countInStock: countInStock || 0,
@@ -81,11 +80,10 @@ export const updateProduct = async (req, res) => {
     
     const product = await Product.findById(req.params.id);
     
-    if (product) {
-      product.name = name || product.name;
+    if (product) {      product.name = name || product.name;
       product.price = price !== undefined ? price : product.price;
       product.description = description || product.description;
-      product.image = image || product.image;
+      product.image = image !== undefined ? image : product.image;
       product.brand = brand || product.brand;
       product.category = category || product.category;
       product.countInStock = countInStock !== undefined ? countInStock : product.countInStock;
