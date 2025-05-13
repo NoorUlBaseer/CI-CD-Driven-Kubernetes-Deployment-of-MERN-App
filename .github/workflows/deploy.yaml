@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, victus]
 
     steps:
       - name: Checkout code
@@ -37,28 +37,17 @@ jobs:
           push: true
           tags: sodapopin/scd-project-frontend:latest
 
-      - name: Set up Docker to use Minikube's environment
-        run: minikube docker-env | Invoke-Expression
-        shell: powershell
-
-      - name: Get Minikube IP
-        id: minikube_ip
-        run: |
-          $ip = minikube ip
-          echo "MINIKUBE_IP=$ip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        shell: powershell
-
       - name: Create namespace
         run: |
-          kubectl create namespace scd-project --dry-run=client -o yaml --validate=false | kubectl apply -f - --validate=false
+          kubectl create namespace scd-project --dry-run=client -o yaml --validate=false | kubectl apply -f -
         shell: powershell
 
       - name: Deploy to Minikube
         run: |
-          kubectl apply -f kubernetes/deployment.yaml --validate=false
-          kubectl apply -f kubernetes/service.yaml --validate=false
+          kubectl apply -f kubernetes/deployment.yaml 
+          kubectl apply -f kubernetes/service.yaml
         shell: powershell
-        
+
       - name: Wait for deployments
         run: |
           kubectl rollout status deployment/backend -n scd-project
