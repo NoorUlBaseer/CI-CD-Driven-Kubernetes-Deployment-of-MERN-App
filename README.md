@@ -1,8 +1,10 @@
-# Kubernetes Cluster Setup with Minikube
+# 🚀 MERN Stack E-Commerce Deployment with Kubernetes & CI/CD
 
-This project demonstrates setting up a local Kubernetes cluster using Minikube, deploying a MERN stack application, and implementing CI/CD with GitHub Actions.
+This project showcases the complete lifecycle of a full-stack e-commerce web application — from local development to production-ready containerized deployment on a local Kubernetes cluster using Minikube, Docker, and GitHub Actions for CI/CD automation.
 
-## Features
+---
+
+## ✨ Features
 
 - Local Kubernetes cluster with Minikube
 - MERN stack application (MongoDB, Express, React, Node.js)
@@ -10,7 +12,28 @@ This project demonstrates setting up a local Kubernetes cluster using Minikube, 
 - GitHub Actions workflow for CI/CD
 - Kubernetes manifests for deployments and services
 
-## Prerequisites
+---
+
+## 🔧 Tech Stack
+
+- 💻 Frontend: React.js (Vite)
+- 🖥 Backend: Node.js, Express.js
+- 🗄 Database: MongoDB
+- 🐳 Docker & Docker Compose
+- ☸️ Kubernetes (Minikube)
+- ⚙️ GitHub Actions (CI/CD)
+- 📦 Docker Hub Registry
+
+---
+
+## 📸 Project Architecture Overview
+- Containerized backend, frontend, and database services
+- Kubernetes deployment manifests for scalable pods and persistent storage
+- CI/CD pipeline with GitHub Actions for image build, push, and automated deployment
+
+---
+
+## 🧰 Prerequisites
 
 Before running this project, ensure you have the following installed:
 
@@ -27,25 +50,27 @@ Before running this project, ensure you have the following installed:
    - [Git](https://git-scm.com/downloads)
    - [Node.js](https://nodejs.org/) (v18+ recommended)
 
-## Getting Started
+---
+
+## 🏁 Getting Started
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/NoorUlBaseer/scd-project.git
+git clone https://github.com/NoorUlBaseer/CI-CD-Driven-Kubernetes-Deployment-of-MERN-App.git
 cd your-repo
 ```
 
 ### 2. Run with Minikube (Recommended)
 
-#### Start Minikube Cluster
+#### ▶️ Start Minikube Cluster
 
 ```bash
 minikube start --driver=docker --memory=4096 --cpus=2
 minikube addons enable ingress
 ```
 
-#### Build and Deploy Application
+#### 🐳 Build and Deploy Application
 
 ```bash
 # Build Docker images
@@ -56,7 +81,7 @@ docker build -t sodapopin/scd-project-frontend:latest ./frontend
 kubectl apply -f kubernetes/
 ```
 
-#### Access the Application
+#### 🌐 Access the Application
 
 ```bash
 # Get application URLs
@@ -69,7 +94,7 @@ minikube service frontend-service
 
 ### 3. Run Locally (Without Kubernetes)
 
-#### Backend Setup
+#### 📦 Backend Setup
 
 ```bash
 cd backend
@@ -77,7 +102,7 @@ npm install
 npm start
 ```
 
-#### Frontend Setup
+#### 🎨 Frontend Setup
 
 ```bash
 cd frontend
@@ -87,7 +112,9 @@ npm run dev
 
 Access the application at `http://localhost:5173`
 
-## Project Structure
+---
+
+## 📁 Project Structure
 
 ```
 ├── backend/               # Node.js/Express backend
@@ -106,7 +133,9 @@ Access the application at `http://localhost:5173`
 └── README.md              # This file
 ```
 
-## CI/CD Pipeline
+---
+
+## 🔁 CI/CD Pipeline
 
 The GitHub Actions workflow performs:
 1. Builds Docker images
@@ -116,7 +145,9 @@ The GitHub Actions workflow performs:
 
 View workflow in `.github/workflows/deploy.yml`
 
-## Troubleshooting
+---
+
+## 🛠 Troubleshooting
 
 ### Common Issues
 
@@ -138,7 +169,9 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-## Clean Up
+---
+
+## 🧹 Cleanup Up
 
 To remove all resources:
 ```bash
@@ -146,3 +179,8 @@ kubectl delete -f kubernetes/
 minikube stop
 minikube delete
 ```
+
+---
+
+## 📜 License 
+This project is licensed under the MIT License. Contributions are welcome! Please see the [LICENSE](LICENSE) file for details.
